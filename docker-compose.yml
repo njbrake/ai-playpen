@@ -6,6 +6,7 @@ services:
     volumes:
       - .:/Users/nbrake/scm/personal/ai-playpen
       - ai-playpen-credentials:/mnt/claude-data
+      - ~/.config/opencode:/home/agent/.config/opencode:ro
     environment:
       - ANTHROPIC_API_KEY
       - OPENAI_API_KEY
