@@ -51,7 +51,7 @@ vibe            # Start Mistral Vibe
 By default, the sandbox mounts the `ai-playpen` directory as your workspace. To work on a different project:
 
 ```bash
-cd ~/scm/personal/ai-playpen
+cd /path/to/ai-playpen
 WORKSPACE_DIR=/path/to/your/project docker compose up -d
 docker compose exec sandbox bash
 ```
@@ -64,17 +64,17 @@ To run multiple containers, set a unique `CONTAINER_NAME` for each:
 
 ```bash
 # Terminal 1: Start container for project A
-cd ~/scm/personal/ai-playpen
+cd /path/to/ai-playpen
 WORKSPACE_DIR=~/projects/project-a CONTAINER_NAME=sandbox-project-a docker compose up -d
 docker exec -it sandbox-project-a bash
 
 # Terminal 2: Start container for project B
-cd ~/scm/personal/ai-playpen
+cd /path/to/ai-playpen
 WORKSPACE_DIR=~/projects/project-b CONTAINER_NAME=sandbox-project-b docker compose up -d
 docker exec -it sandbox-project-b bash
 
 # Terminal 3: Start container for project C
-cd ~/scm/personal/ai-playpen
+cd /path/to/ai-playpen
 WORKSPACE_DIR=~/projects/project-c CONTAINER_NAME=sandbox-project-c docker compose up -d
 docker exec -it sandbox-project-c bash
 ```
