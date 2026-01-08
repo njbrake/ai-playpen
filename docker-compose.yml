@@ -1,0 +1,15 @@
+services:
+  sandbox:
+    build: .
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./workspace:/workspace
+      - ~/.claude:/home/agent/.claude
+      - ~/.config/opencode:/home/agent/.config/opencode
+      - ~/.codex:/home/agent/.codex
+      - ~/.vibe:/home/agent/.vibe
+    environment:
+      - ANTHROPIC_API_KEY
+      - OPENAI_API_KEY
+      - MISTRAL_API_KEY
