@@ -7,14 +7,19 @@ services:
     volumes:
       - ${WORKSPACE_DIR:-.}:${WORKSPACE_MOUNT:-/workspace}
       - ai-playpen-credentials:/mnt/claude-data
+      - opencode-config:/home/agent/.config/opencode
       - ./opencode.json:/home/agent/.config/opencode/opencode.json:ro
     environment:
       - ANTHROPIC_API_KEY
       - OPENAI_API_KEY
       - MISTRAL_API_KEY
     working_dir: ${WORKSPACE_MOUNT:-/workspace}
+    user: "1000:1000"
 
 volumes:
   ai-playpen-credentials:
     name: ai-playpen-credentials
+    driver: local
+  opencode-config:
+    name: opencode-config
     driver: local
