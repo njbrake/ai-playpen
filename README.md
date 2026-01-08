@@ -46,11 +46,81 @@ codex           # Start Codex
 vibe            # Start Mistral Vibe
 ```
 
+## Working on Different Projects
+
+By default, the sandbox mounts the `ai-playpen` directory as your workspace. To work on a different project:
+
+**Option 1: Set environment variables before starting**
+
+```bash
+cd ~/scm/personal/ai-playpen
+export WORKSPACE_DIR=/path/to/your/project
+export WORKSPACE_MOUNT=/workspace  # Optional: customize the container path
+docker compose up -d
+docker compose exec sandbox bash
+```
+
+**Option 2: Inline with docker compose**
+
+```bash
+cd ~/scm/personal/ai-playpen
+WORKSPACE_DIR=/path/to/your/project docker compose up -d
+docker compose exec sandbox bash
+```
+
+**Option 3: Add to your .env file**
+
+```bash
+# In ai-playpen/.env
+WORKSPACE_DIR=/path/to/your/project
+WORKSPACE_MOUNT=/workspace
+```
+
+Then run `docker compose up -d` as usual. The specified directory will be mounted at `/workspace` (or your custom mount path) inside the container, and that will be your working directory.
+
+### Running Multiple Containers Simultaneously
+
+You can run multiple sandbox containers for different projects at the same time. All containers will share the same `ai-playpen-credentials` volume, so your API keys and tool configurations are consistent across all instances.
+
+To run multiple containers, set a unique `CONTAINER_NAME` for each:
+
+```bash
+# Terminal 1: Start container for project A
+cd ~/scm/personal/ai-playpen
+WORKSPACE_DIR=~/projects/project-a CONTAINER_NAME=sandbox-project-a docker compose up -d
+docker exec -it sandbox-project-a bash
+
+# Terminal 2: Start container for project B
+cd ~/scm/personal/ai-playpen
+WORKSPACE_DIR=~/projects/project-b CONTAINER_NAME=sandbox-project-b docker compose up -d
+docker exec -it sandbox-project-b bash
+
+# Terminal 3: Start container for project C
+cd ~/scm/personal/ai-playpen
+WORKSPACE_DIR=~/projects/project-c CONTAINER_NAME=sandbox-project-c docker compose up -d
+docker exec -it sandbox-project-c bash
+```
+
+Each container:
+- Runs independently with its own workspace
+- Shares the same `ai-playpen-credentials` volume (API keys, tool configs)
+- Has a unique name for easy management
+
+To stop a specific container:
+```bash
+CONTAINER_NAME=sandbox-project-a docker compose down
+```
+
+To list all running containers:
+```bash
+docker ps --filter "name=sandbox-"
+```
+
 ## How It Works
 
 When you run the sandbox:
 
-- Your project directory is mounted at the same path inside the container
+- Your workspace directory is mounted at `/workspace` inside the container (configurable via `WORKSPACE_MOUNT`)
 - API credentials are stored in a persistent Docker volume (`ai-playpen-credentials`) mounted at `/mnt/claude-data`
 - The container runs as the `agent` user with sudo privileges
 - All AI tools are pre-installed and ready to use
@@ -58,6 +128,14 @@ When you run the sandbox:
 The container continues running in the background. Running `docker compose exec sandbox bash` again reuses the existing container, allowing you to maintain state (installed packages, temporary files, stored credentials) across sessions.
 
 ## Configuration
+
+### OpenCode Configuration
+
+OpenCode requires a configuration file. Create an `opencode.json` file in the project root (this file is gitignored):
+
+- If you already have OpenCode installed, you can copy your existing config from `~/.config/opencode/opencode.json`
+- For configuration options and schema, see: https://opencode.ai/config.json
+- The file will be mounted into the container at `~/.config/opencode/opencode.json` at runtime
 
 ### Persistent Credentials
 
@@ -74,22 +152,33 @@ git config --global user.email "your.email@example.com"
 
 ### Environment Variables
 
-Pass API keys via environment variables. You can either:
+Pass API keys and workspace configuration via environment variables. You can either:
 
 1. Export them in your shell before running docker compose
 2. Create a `.env` file in the project root:
 
 ```bash
+# API Keys
 ANTHROPIC_API_KEY=sk-ant-...
 OPENAI_API_KEY=sk-...
 MISTRAL_API_KEY=...
+
+# Workspace Configuration (optional)
+WORKSPACE_DIR=/path/to/your/project    # Defaults to current directory (.)
+WORKSPACE_MOUNT=/workspace             # Defaults to /workspace
+CONTAINER_NAME=ai-playpen-sandbox      # Defaults to ai-playpen-sandbox
 ```
 
 ## Managing the Sandbox
 
-Stop the sandbox:
+Stop the default sandbox:
 ```bash
 docker compose down
+```
+
+Stop a specific container (when running multiple):
+```bash
+CONTAINER_NAME=sandbox-project-a docker compose down
 ```
 
 Rebuild after updating the Dockerfile:
@@ -97,7 +186,15 @@ Rebuild after updating the Dockerfile:
 docker compose up -d --build
 ```
 
-Remove the sandbox and its volume:
+Remove the default sandbox and its volume:
 ```bash
 docker compose down -v
 ```
+
+**Note:** The `ai-playpen-credentials` volume is shared across all containers. Removing it with `-v` will delete stored credentials for all sandbox instances. To remove just the container without affecting the shared volume, use `docker compose down` without the `-v` flag.
+
+---
+
+## Disclaimer
+
+This repository was generated using Claude Code (Opus 4.5). Some components may not be fully functional or tested. Use at your own risk.
